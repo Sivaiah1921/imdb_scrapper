@@ -1,11 +1,18 @@
 import axios from "axios";
 import request from "request";
-import { encaseP, fork } from "fluture";
 import { Parser as json2csv } from "json2csv";
 import cheerio from "cheerio";
+import { readFile } from "fs";
+import { node, encase, chain, map, fork, encaseP } from "fluture";
+
+const fs = require("fs");
 
 const fetchAxios = encaseP(axios);
 const requestPosts = () => fetchAxios("https://www.imdb.com/?ref_=nv_home");
+const getPackageName = (file) =>
+	node((done) => {
+		readFile(file, "utf8", done);
+	}).pipe(chain(encase(JSON.parse)));
 
 const getValuesFromCheerio = (html) => {
 	const imdb = [];
@@ -30,10 +37,11 @@ const getValuesFromCheerio = (html) => {
 	});
 	const j2csv = new json2csv();
 	const csvfile = j2csv.parse(imdb);
-	console.log(csvfile);
+	const disc = JSON.stringify(imdb);
+	fs.writeFile("output.json", disc, (err, result) => {
+		if (err) console.log("error", err);
+	});
 	// json2csv.writeFileSync("./imdb.csv", csvfile, "utf-8");
-
-	return console.log({ title, trailer, rating });
 };
 const getImdbData = () => {
 	const get = {
@@ -60,3 +68,4 @@ requestPosts().pipe(
 		console.log("resolve", getImdbData())
 	)
 );
+getPackageName("output.json").pipe(fork(console.error)(console.log));
