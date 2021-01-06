@@ -28,25 +28,28 @@ const getData = () => {
 			if (err) {
 				console.log(err);
 			} else {
-				let $ = load(html);
+				let $ = cheerio.load(html);
 				let title = $(
-					'div[class="SlideCaptionWithPeekstyle__WithPeekCaptionHeading-sc-1v8fw6-1 jZASpf"] > span'
+					'a[class="ipc-poster-card__title ipc-poster-card__title--clamp-2 ipc-poster-card__title--clickable"]'
 				)
 					.text()
 					.trim();
-				let subtitle = $(
+				let trailer = $(
 					'div[class="SlideCaptionWithPeekstyle__WithPeekCaptionSubHeading-sc-1v8fw6-2 kMejoQ"]'
 				)
 					.text()
 					.trim();
-
+				let rating = $('div[class="ipc-poster-card__rating-star-group"]')
+					.text()
+					.slice(0, 3);
 				imdb.push({
 					title,
-					subtitle,
+					rating,
+					trailer,
 				});
 				const j2csv = new json2csv();
 				const csvfile = j2csv.parse(imdb);
-				console.log(title, subtitle);
+				console.log(title, trailer, rating);
 				writeFileSync("./imdb.csv", csvfile, "utf-8");
 			}
 		}
